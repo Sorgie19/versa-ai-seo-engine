@@ -19,6 +19,9 @@ define( 'VERSA_AI_SEO_ENGINE_PLUGIN_FILE', __FILE__ );
 define( 'VERSA_AI_SEO_ENGINE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'VERSA_AI_SEO_ENGINE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+// Ensure installer is available for activation hooks before other bootstrap.
+require_once VERSA_AI_SEO_ENGINE_PLUGIN_DIR . 'database/class-versa-ai-installer.php';
+
 if ( ! class_exists( 'Versa_AI_SEO_Engine' ) ) {
     class Versa_AI_SEO_Engine {
         private static $instance = null;
