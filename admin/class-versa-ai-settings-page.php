@@ -82,8 +82,8 @@ class Versa_AI_Settings_Page {
     public function sanitize_settings( $input ): array {
         $input = is_array( $input ) ? $input : array();
 
-        $services  = $this->split_lines( isset( $input['services'] ) ? $input['services'] : '' );
-        $locations = $this->split_lines( isset( $input['locations'] ) ? $input['locations'] : '' );
+        $services  = $this->split_lines( $input['services'] ?? '' );
+        $locations = $this->split_lines( $input['locations'] ?? '' );
 
         $posts_per_week = isset( $input['posts_per_week'] ) ? (int) $input['posts_per_week'] : 0;
         $posts_per_week = max( 0, min( 7, $posts_per_week ) );
@@ -109,10 +109,14 @@ class Versa_AI_Settings_Page {
     /**
      * Split newline-separated strings into arrays.
      */
-    private function split_lines( string $text ): array {
-        $lines = preg_split( '/[\r\n]+/', $text );
-        if ( ! is_array( $lines ) ) {
-            $lines = array();
+    private function split_lines( $text ): array {
+        if ( is_array( $text ) ) {
+            $lines = $text;
+        } else {
+            $lines = preg_split( '/[\r\n]+/', (string) $text );
+            if ( ! is_array( $lines ) ) {
+                $lines = array();
+            }
         }
 
         $trimmed = array_filter( array_map( 'trim', $lines ) );
