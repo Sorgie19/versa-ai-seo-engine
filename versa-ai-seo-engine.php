@@ -65,9 +65,11 @@ if ( ! class_exists( 'Versa_AI_SEO_Engine' ) ) {
 
             require_once VERSA_AI_SEO_ENGINE_PLUGIN_DIR . 'cron/class-versa-ai-cron.php';
 
+            // Settings are needed in both admin and cron/CLI contexts.
+            require_once VERSA_AI_SEO_ENGINE_PLUGIN_DIR . 'admin/class-versa-ai-settings-page.php';
+
             if ( is_admin() ) {
                 require_once VERSA_AI_SEO_ENGINE_PLUGIN_DIR . 'admin/class-versa-ai-admin-menu.php';
-                require_once VERSA_AI_SEO_ENGINE_PLUGIN_DIR . 'admin/class-versa-ai-settings-page.php';
                 require_once VERSA_AI_SEO_ENGINE_PLUGIN_DIR . 'admin/class-versa-ai-tasks-page.php';
             }
         }
