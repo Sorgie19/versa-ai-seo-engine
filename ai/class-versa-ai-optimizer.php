@@ -133,30 +133,29 @@ class Versa_AI_Optimizer {
         $initial_status   = $require_approval ? 'awaiting_approval' : 'pending';
 
         if ( $snapshot['word_count'] > 0 && $snapshot['word_count'] < 700 ) {
-            Versa_AI_SEO_Tasks::insert_task(
-                $post_id,
-                'expand_content',
-                [
-                    'reason'      => 'Low word count',
-                    'word_count'  => $snapshot['word_count'],
-                    'target_min'  => 900,
-                    'target_max'  => (int) $this->get_profile()['max_words_per_post'],
-                ],
-                $initial_status
-            );
+            $payload = [
+                'reason'      => 'Low word count',
+                'word_count'  => $snapshot['word_count'],
+                'target_min'  => 900,
+                'target_max'  => (int) $this->get_profile()['max_words_per_post'],
+            ];
+            $payload = $this->with_task_summary( 'expand_content', $payload, [
+                'word_count' => $snapshot['word_count'],
+                'title'      => get_the_title( $post_id ),
+            ] );
+            Versa_AI_SEO_Tasks::insert_task( $post_id, 'expand_content', $payload, $initial_status );
         }
 
         if ( ! $snapshot['has_meta_description'] ) {
-            Versa_AI_SEO_Tasks::insert_task(
-                $post_id,
-                'write_snippet',
-                [ 'reason' => 'Missing meta description' ],
-                $initial_status
-            );
+            $payload = [ 'reason' => 'Missing meta description' ];
+            $payload = $this->with_task_summary( 'write_snippet', $payload, [ 'title' => get_the_title( $post_id ) ] );
+            Versa_AI_SEO_Tasks::insert_task( $post_id, 'write_snippet', $payload, $initial_status );
         }
 
         if ( empty( $snapshot['internal_links_to_services'] ) && ! empty( $service_urls ) ) {
-            Versa_AI_SEO_Tasks::insert_task( $post_id, 'internal_linking', [ 'service_urls' => $service_urls ], $initial_status );
+            $payload = [ 'service_urls' => $service_urls ];
+            $payload = $this->with_task_summary( 'internal_linking', $payload, [ 'title' => get_the_title( $post_id ) ] );
+            Versa_AI_SEO_Tasks::insert_task( $post_id, 'internal_linking', $payload, $initial_status );
         }
 
         $profile = $this->get_profile();
@@ -171,12 +170,9 @@ class Versa_AI_Optimizer {
             && ( $faq_min_words <= 0 || $snapshot['word_count'] >= $faq_min_words );
 
         if ( $faq_allowed && $snapshot['has_faq_section'] && ! $snapshot['has_faq_schema'] ) {
-            Versa_AI_SEO_Tasks::insert_task(
-                $post_id,
-                'faq_schema',
-                [ 'reason' => 'FAQ section present but missing schema' ],
-                $initial_status
-            );
+            $payload = [ 'reason' => 'FAQ section present but missing schema' ];
+            $payload = $this->with_task_summary( 'faq_schema', $payload, [ 'title' => get_the_title( $post_id ) ] );
+            Versa_AI_SEO_Tasks::insert_task( $post_id, 'faq_schema', $payload, $initial_status );
         }
     }
 
@@ -216,60 +212,70 @@ class Versa_AI_Optimizer {
 
         // Article schema for posts/pages missing Article/BlogPosting JSON-LD.
         if ( $schema_enabled['article'] && $this->should_add_article_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'article_schema' ) && $can_add_schema() ) {
-            Versa_AI_SEO_Tasks::insert_task( $post_id, 'article_schema', [ 'title' => $title ], $initial_status );
+            $payload = $this->with_task_summary( 'article_schema', [ 'title' => $title ] );
+            Versa_AI_SEO_Tasks::insert_task( $post_id, 'article_schema', $payload, $initial_status );
         }
 
         // BreadcrumbList for content with ancestors and no breadcrumb schema.
         if ( $schema_enabled['breadcrumb'] && $this->should_add_breadcrumb_schema( $post_id, $content ) && ! $this->has_open_task( $post_id, 'breadcrumb_schema' ) && $can_add_schema() ) {
-            $trail = $this->get_breadcrumb_trail( $post_id );
-            Versa_AI_SEO_Tasks::insert_task( $post_id, 'breadcrumb_schema', [ 'trail' => $trail ], $initial_status );
+            $trail   = $this->get_breadcrumb_trail( $post_id );
+            $payload = $this->with_task_summary( 'breadcrumb_schema', [ 'trail' => $trail ] );
+            Versa_AI_SEO_Tasks::insert_task( $post_id, 'breadcrumb_schema', $payload, $initial_status );
         }
 
         // HowTo when steps detected and missing schema.
         if ( $schema_enabled['howto'] && $this->should_add_howto_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'howto_schema' ) && $can_add_schema() ) {
             $steps_html = $this->extract_step_list_html( $content );
             if ( $steps_html ) {
-                Versa_AI_SEO_Tasks::insert_task( $post_id, 'howto_schema', [ 'steps_html' => $steps_html, 'title' => $title ], $initial_status );
+                $payload = $this->with_task_summary( 'howto_schema', [ 'steps_html' => $steps_html, 'title' => $title ] );
+                Versa_AI_SEO_Tasks::insert_task( $post_id, 'howto_schema', $payload, $initial_status );
             }
         }
 
         // VideoObject when embedded video detected and missing schema.
         $video = $this->detect_video_embed( $content );
         if ( $schema_enabled['video'] && $video && ! $this->content_has_schema_type( $content, 'VideoObject' ) && ! $this->has_open_task( $post_id, 'video_schema' ) && $can_add_schema() ) {
-            Versa_AI_SEO_Tasks::insert_task( $post_id, 'video_schema', $video + [ 'title' => $title ], $initial_status );
+            $payload = $this->with_task_summary( 'video_schema', $video + [ 'title' => $title ] );
+            Versa_AI_SEO_Tasks::insert_task( $post_id, 'video_schema', $payload, $initial_status );
         }
 
         // Product schema when product-like signals found.
         if ( $schema_enabled['product'] && $this->should_add_product_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'product_schema' ) && $can_add_schema() ) {
             $product_payload = $this->extract_product_signals( $content, $title );
+            $product_payload = $this->with_task_summary( 'product_schema', $product_payload );
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'product_schema', $product_payload, $initial_status );
         }
 
         // Service schema when service-like page detected.
         if ( $schema_enabled['service'] && $this->should_add_service_schema( $post, $content, $profile ) && ! $this->has_open_task( $post_id, 'service_schema' ) && $can_add_schema() ) {
             $service_payload = [ 'title' => $title, 'description' => wp_trim_words( wp_strip_all_tags( $content ), 60, '' ) ];
+            $service_payload = $this->with_task_summary( 'service_schema', $service_payload );
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'service_schema', $service_payload, $initial_status );
         }
 
         // Event schema when event signals found.
         if ( $schema_enabled['event'] && $this->should_add_event_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'event_schema' ) && $can_add_schema() ) {
             $event_payload = $this->extract_event_signals( $content, $title );
+            $event_payload = $this->with_task_summary( 'event_schema', $event_payload );
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'event_schema', $event_payload, $initial_status );
         }
 
         // WebSite + SearchAction for front page when missing.
         $front_page_id = (int) get_option( 'page_on_front' );
         if ( $schema_enabled['website'] && $front_page_id > 0 && $post_id === $front_page_id && ! $this->content_has_schema_type( $content, 'WebSite' ) && ! $this->has_open_task( $post_id, 'website_schema' ) && $can_add_schema() ) {
-            Versa_AI_SEO_Tasks::insert_task( $post_id, 'website_schema', [], $initial_status );
+            $payload = $this->with_task_summary( 'website_schema', [] );
+            Versa_AI_SEO_Tasks::insert_task( $post_id, 'website_schema', $payload, $initial_status );
         }
 
         // Organization/LocalBusiness schema for front page only.
         if ( $front_page_id > 0 && $post_id === $front_page_id && ! $this->content_has_schema_type( $content, 'Organization' ) && ! $this->content_has_schema_type( $content, 'LocalBusiness' ) ) {
             if ( $schema_enabled['localbusiness'] && ! $this->has_open_task( $post_id, 'localbusiness_schema' ) && $can_add_schema() ) {
-                Versa_AI_SEO_Tasks::insert_task( $post_id, 'localbusiness_schema', [], $initial_status );
+                $payload = $this->with_task_summary( 'localbusiness_schema', [] );
+                Versa_AI_SEO_Tasks::insert_task( $post_id, 'localbusiness_schema', $payload, $initial_status );
             }
             if ( $schema_enabled['org'] && ! $this->has_open_task( $post_id, 'org_schema' ) && $can_add_schema() ) {
-                Versa_AI_SEO_Tasks::insert_task( $post_id, 'org_schema', [], $initial_status );
+                $payload = $this->with_task_summary( 'org_schema', [] );
+                Versa_AI_SEO_Tasks::insert_task( $post_id, 'org_schema', $payload, $initial_status );
             }
         }
     }
@@ -324,7 +330,8 @@ class Versa_AI_Optimizer {
 
                 $spawn = function ( string $type, array $extra_payload = [] ) use ( $post_id, $initial_status, &$spawned ) {
                     if ( ! $this->has_open_task( $post_id, $type ) ) {
-                        Versa_AI_SEO_Tasks::insert_task( $post_id, $type, $extra_payload, $initial_status );
+                        $payload = $this->with_task_summary( $type, $extra_payload, [ 'title' => get_the_title( $post_id ) ] );
+                        Versa_AI_SEO_Tasks::insert_task( $post_id, $type, $payload, $initial_status );
                         $spawned[] = $type;
                     }
                 };
@@ -1277,6 +1284,113 @@ class Versa_AI_Optimizer {
             return null;
         }
         return [ $key => $decoded[ $key ] ];
+    }
+
+    /**
+     * Add human summary, recommended action, and priority to task payloads for approvals.
+     */
+    private function with_task_summary( string $task_type, array $payload, array $context = [] ): array {
+        // Avoid overwriting if already provided.
+        if ( ! empty( $payload['summary'] ) && ! empty( $payload['recommended_action'] ) ) {
+            return $payload;
+        }
+
+        $title      = $context['title'] ?? ( $payload['title'] ?? '' );
+        $word_count = $context['word_count'] ?? ( $payload['word_count'] ?? '' );
+
+        switch ( $task_type ) {
+            case 'expand_content':
+                $payload['summary']            = $payload['summary'] ?? sprintf( 'Expand content%s to compete.', $word_count ? ' (~' . $word_count . ' words)' : '' );
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Add depth, specifics, subtopics, and internal links; target ~900+ words if warranted.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+
+            case 'write_snippet':
+                $payload['summary']            = $payload['summary'] ?? 'Write meta title and description (missing/weak).';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Add a unique title (~55-60 chars) and meta description (120-155 chars) reflecting the page intent.';
+                $payload['priority']           = $payload['priority'] ?? 'high';
+                break;
+
+            case 'internal_linking':
+                $payload['summary']            = $payload['summary'] ?? 'Add a few contextual internal links to service/location pages.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Insert up to 5 natural internal links with descriptive anchors; do not change meaning.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+
+            case 'faq_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add FAQPage JSON-LD for the on-page FAQ to unlock FAQ rich results.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Generate 3-5 concise Q&A pairs from the FAQ section and add FAQPage schema.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+
+            case 'article_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add Article/BlogPosting JSON-LD so search can show article rich snippets.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Generate Article schema with headline, description, author, dates, canonical URL.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+
+            case 'breadcrumb_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add BreadcrumbList JSON-LD so Google can show breadcrumb links.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Generate breadcrumb trail from ancestors and add BreadcrumbList schema.';
+                $payload['priority']           = $payload['priority'] ?? 'low';
+                break;
+
+            case 'howto_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add HowTo JSON-LD to enable HowTo rich results for the steps on this page.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Build HowTo schema with steps, times, materials/tools if present, matching on-page steps.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+
+            case 'video_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add VideoObject JSON-LD so the embedded video is eligible for video rich results.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Generate VideoObject schema with name, description, thumbnail, content URL, upload date.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+
+            case 'product_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add Product JSON-LD so search can show product rich results.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Include name, price/currency, availability, image, SKU/brand if present.';
+                $payload['priority']           = $payload['priority'] ?? 'high';
+                break;
+
+            case 'service_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add Service JSON-LD to clarify the service offering for rich results.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Include service name, description, area served, provider, and offers if available.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+
+            case 'event_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add Event JSON-LD so the event can show date/location rich results.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Add name, description, start/end dates, location/online flag, URL.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+
+            case 'website_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add WebSite JSON-LD with SearchAction for sitelinks search box eligibility.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Include site name, URL, description, and SearchAction target URL.';
+                $payload['priority']           = $payload['priority'] ?? 'low';
+                break;
+
+            case 'org_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add Organization JSON-LD to declare brand identity (name, URL, logo).';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Include organization name, URL, logo, and description; use LocalBusiness if applicable.';
+                $payload['priority']           = $payload['priority'] ?? 'low';
+                break;
+
+            case 'localbusiness_schema':
+                $payload['summary']            = $payload['summary'] ?? 'Add LocalBusiness JSON-LD to qualify for local pack/knowledge panel.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Include business name, address, phone, geo coordinates, and URL/logo if available.';
+                $payload['priority']           = $payload['priority'] ?? 'high';
+                break;
+
+            default:
+                $payload['summary']            = $payload['summary'] ?? 'Task generated by scanner.';
+                $payload['recommended_action'] = $payload['recommended_action'] ?? 'Review and apply this task.';
+                $payload['priority']           = $payload['priority'] ?? 'medium';
+                break;
+        }
+
+        return $payload;
     }
 
     /**

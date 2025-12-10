@@ -27,7 +27,20 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     <?php endif; ?>
 
-    <h2><?php esc_html_e( 'Awaiting Approval', 'versa-ai-seo-engine' ); ?></h2>
+    <div style="display:flex; align-items:center; gap:12px; margin:12px 0 18px; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-awaiting" aria-pressed="true"><?php esc_html_e( 'Awaiting Approval', 'versa-ai-seo-engine' ); ?></button>
+            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-awaiting-apply" aria-pressed="false"><?php esc_html_e( 'Awaiting Apply', 'versa-ai-seo-engine' ); ?></button>
+            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-recent" aria-pressed="false"><?php esc_html_e( 'Recent Activity', 'versa-ai-seo-engine' ); ?></button>
+        </div>
+        <label for="versa_ai_task_filter" style="display:flex; align-items:center; gap:6px;">
+            <span class="screen-reader-text"><?php esc_html_e( 'Filter tasks', 'versa-ai-seo-engine' ); ?></span>
+            <input id="versa_ai_task_filter" type="search" placeholder="<?php esc_attr_e( 'Filter by post, type, summary...', 'versa-ai-seo-engine' ); ?>" style="min-width:220px;" />
+        </label>
+    </div>
+
+    <div id="versa-ai-tab-awaiting" class="versa-ai-tab-panel" aria-hidden="false">
+    <h2 style="margin-top:0;"><?php esc_html_e( 'Awaiting Approval', 'versa-ai-seo-engine' ); ?></h2>
     <?php if ( empty( $awaiting ) ) : ?>
         <p><?php esc_html_e( 'No tasks are awaiting approval.', 'versa-ai-seo-engine' ); ?></p>
     <?php else : ?>
@@ -52,7 +65,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <th><?php esc_html_e( 'ID', 'versa-ai-seo-engine' ); ?></th>
                         <th><?php esc_html_e( 'Post', 'versa-ai-seo-engine' ); ?></th>
                         <th><?php esc_html_e( 'Type', 'versa-ai-seo-engine' ); ?></th>
-                        <th><?php esc_html_e( 'Payload', 'versa-ai-seo-engine' ); ?></th>
+                        <th><?php esc_html_e( 'Priority', 'versa-ai-seo-engine' ); ?></th>
+                        <th><?php esc_html_e( 'Details', 'versa-ai-seo-engine' ); ?></th>
                         <th><?php esc_html_e( 'Actions', 'versa-ai-seo-engine' ); ?></th>
                     </tr>
                 </thead>
@@ -74,10 +88,19 @@ if ( ! defined( 'ABSPATH' ) ) {
                                     <?php esc_html_e( 'Site-wide', 'versa-ai-seo-engine' ); ?>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo esc_html( $task['task_type'] ); ?></td>
+                            <td><?php echo esc_html( ucfirst( str_replace( '_', ' ', $task['task_type'] ) ) ); ?></td>
                             <td>
-                                <?php if ( is_array( $payload_decoded ) && ! empty( $payload_decoded['summary'] ) ) : ?>
-                                    <div><strong><?php esc_html_e( 'Summary:', 'versa-ai-seo-engine' ); ?></strong> <?php echo esc_html( $payload_decoded['summary'] ); ?></div>
+                                <?php $priority = is_array( $payload_decoded ) ? ( $payload_decoded['priority'] ?? '' ) : ''; ?>
+                                <span class="versa-ai-priority versa-ai-priority-<?php echo esc_attr( strtolower( $priority ?: 'medium' ) ); ?>"><?php echo esc_html( $priority ?: __( 'medium', 'versa-ai-seo-engine' ) ); ?></span>
+                            </td>
+                            <td>
+                                <?php if ( is_array( $payload_decoded ) ) : ?>
+                                    <?php if ( ! empty( $payload_decoded['summary'] ) ) : ?>
+                                        <div><strong><?php esc_html_e( 'Summary:', 'versa-ai-seo-engine' ); ?></strong> <?php echo esc_html( $payload_decoded['summary'] ); ?></div>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $payload_decoded['recommended_action'] ) ) : ?>
+                                        <div><strong><?php esc_html_e( 'Why / Action:', 'versa-ai-seo-engine' ); ?></strong> <?php echo esc_html( $payload_decoded['recommended_action'] ); ?></div>
+                                    <?php endif; ?>
                                     <?php if ( ! empty( $payload_decoded['warnings'] ) && is_array( $payload_decoded['warnings'] ) ) : ?>
                                         <div><strong><?php esc_html_e( 'Warnings:', 'versa-ai-seo-engine' ); ?></strong>
                                             <ul style="margin:4px 0 0 18px; list-style:disc;">
@@ -92,7 +115,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                                         <code style="white-space:pre-wrap; display:block; margin-top:4px;"><?php echo esc_html( $task['payload'] ); ?></code>
                                     </details>
                                 <?php else : ?>
-                                    <code style="white-space:pre-wrap;"><?php echo esc_html( $task['payload'] ); ?></code>
+                                    <code style="white-space:pre-wrap; display:block; margin-top:4px;"><?php echo esc_html( $task['payload'] ); ?></code>
                                 <?php endif; ?>
                             </td>
                             <td>
@@ -115,8 +138,10 @@ if ( ! defined( 'ABSPATH' ) ) {
             </script>
         </form>
     <?php endif; ?>
+    </div>
 
-    <h2><?php esc_html_e( 'Recent Activity', 'versa-ai-seo-engine' ); ?></h2>
+    <div id="versa-ai-tab-recent" class="versa-ai-tab-panel" aria-hidden="true" style="display:none;">
+    <h2 style="margin-top:0;"><?php esc_html_e( 'Recent Activity', 'versa-ai-seo-engine' ); ?></h2>
     <?php if ( empty( $recent ) ) : ?>
         <p><?php esc_html_e( 'No recent tasks.', 'versa-ai-seo-engine' ); ?></p>
     <?php else : ?>
@@ -145,8 +170,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <?php esc_html_e( 'Site-wide', 'versa-ai-seo-engine' ); ?>
                             <?php endif; ?>
                         </td>
-                        <td><?php echo esc_html( $task['task_type'] ); ?></td>
-                        <td><?php echo esc_html( $task['status'] ); ?></td>
+                        <td><?php echo esc_html( ucfirst( str_replace( '_', ' ', $task['task_type'] ) ) ); ?></td>
+                        <td><span class="versa-ai-status versa-ai-status-<?php echo esc_attr( strtolower( $task['status'] ) ); ?>"><?php echo esc_html( ucfirst( $task['status'] ) ); ?></span></td>
                         <td>
                             <?php if ( is_array( $result_decoded ) && ! empty( $result_decoded['summary'] ) ) : ?>
                                 <div><strong><?php esc_html_e( 'Summary:', 'versa-ai-seo-engine' ); ?></strong> <?php echo esc_html( $result_decoded['summary'] ); ?></div>
@@ -172,8 +197,10 @@ if ( ! defined( 'ABSPATH' ) ) {
             </tbody>
         </table>
     <?php endif; ?>
+    </div>
 
-    <h2><?php esc_html_e( 'Awaiting Apply', 'versa-ai-seo-engine' ); ?></h2>
+    <div id="versa-ai-tab-awaiting-apply" class="versa-ai-tab-panel" aria-hidden="true" style="display:none;">
+    <h2 style="margin-top:0;"><?php esc_html_e( 'Awaiting Apply', 'versa-ai-seo-engine' ); ?></h2>
     <?php if ( empty( $awaiting_apply ) ) : ?>
         <p><?php esc_html_e( 'No tasks are awaiting apply.', 'versa-ai-seo-engine' ); ?></p>
     <?php else : ?>
@@ -247,4 +274,57 @@ if ( ! defined( 'ABSPATH' ) ) {
             </tbody>
         </table>
     <?php endif; ?>
+    </div>
 </div>
+
+<style>
+.versa-ai-tab-button[aria-pressed="true"] { background:#2271b1; color:#fff; }
+.versa-ai-tab-panel { margin-top:0; }
+.versa-ai-priority { display:inline-block; padding:2px 8px; border-radius:12px; text-transform:capitalize; background:#f0f0f1; color:#444; }
+.versa-ai-priority-high { background:#fde2e1; color:#a30000; }
+.versa-ai-priority-medium { background:#fff4d8; color:#9c6b00; }
+.versa-ai-priority-low { background:#e7f5ff; color:#0b5aa2; }
+.versa-ai-status { display:inline-block; padding:2px 8px; border-radius:12px; text-transform:capitalize; background:#f0f0f1; color:#444; }
+.versa-ai-status-done { background:#e7f7ef; color:#1b7f3b; }
+.versa-ai-status-failed { background:#fde2e1; color:#a30000; }
+.versa-ai-status-running { background:#e7f2ff; color:#0b5aa2; }
+.versa-ai-status-awaiting_apply { background:#fff4d8; color:#9c6b00; }
+.versa-ai-status-awaiting_approval { background:#fff4d8; color:#9c6b00; }
+.versa-ai-status-pending { background:#f0f0f1; color:#444; }
+</style>
+
+<script>
+( function () {
+    const buttons = Array.from( document.querySelectorAll( '.versa-ai-tab-button' ) );
+    const panels = Array.from( document.querySelectorAll( '.versa-ai-tab-panel' ) );
+    const filter = document.getElementById( 'versa_ai_task_filter' );
+
+    const showPanel = ( id ) => {
+        panels.forEach( ( panel ) => {
+            const active = panel.id === id;
+            panel.style.display = active ? '' : 'none';
+            panel.setAttribute( 'aria-hidden', active ? 'false' : 'true' );
+        } );
+        buttons.forEach( ( btn ) => {
+            const active = btn.dataset.target === id;
+            btn.setAttribute( 'aria-pressed', active ? 'true' : 'false' );
+        } );
+    };
+
+    buttons.forEach( ( btn ) => {
+        btn.addEventListener( 'click', () => showPanel( btn.dataset.target ) );
+    } );
+
+    const filterRows = () => {
+        const term = ( filter?.value || '' ).toLowerCase();
+        document.querySelectorAll( '.wp-list-table tbody tr' ).forEach( ( row ) => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes( term ) ? '' : 'none';
+        } );
+    };
+
+    if ( filter ) {
+        filter.addEventListener( 'input', filterRows );
+    }
+} )();
+</script>
