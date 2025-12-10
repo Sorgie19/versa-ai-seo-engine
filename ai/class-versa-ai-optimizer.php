@@ -188,22 +188,45 @@ class Versa_AI_Optimizer {
         $require_approval = (bool) ( $profile['require_task_approval'] ?? false );
         $initial_status   = $require_approval ? 'awaiting_approval' : 'pending';
 
+        $max_schema_tasks = isset( $profile['schema_tasks_per_run'] ) ? (int) $profile['schema_tasks_per_run'] : 0;
+        $created_schema   = 0;
+        $can_add_schema   = function () use ( $max_schema_tasks, &$created_schema ): bool {
+            if ( $max_schema_tasks > 0 && $created_schema >= $max_schema_tasks ) {
+                return false;
+            }
+            $created_schema++;
+            return true;
+        };
+
+        $schema_enabled = [
+            'article'       => ! empty( $profile['enable_article_schema'] ),
+            'breadcrumb'    => ! empty( $profile['enable_breadcrumb_schema'] ),
+            'howto'         => ! empty( $profile['enable_howto_schema'] ),
+            'video'         => ! empty( $profile['enable_video_schema'] ),
+            'product'       => ! empty( $profile['enable_product_schema'] ),
+            'service'       => ! empty( $profile['enable_service_schema'] ),
+            'event'         => ! empty( $profile['enable_event_schema'] ),
+            'website'       => ! empty( $profile['enable_website_schema'] ),
+            'org'           => ! empty( $profile['enable_org_schema'] ),
+            'localbusiness' => ! empty( $profile['enable_localbusiness_schema'] ),
+        ];
+
         $content = $post->post_content;
         $title   = get_the_title( $post_id );
 
         // Article schema for posts/pages missing Article/BlogPosting JSON-LD.
-        if ( $this->should_add_article_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'article_schema' ) ) {
+        if ( $schema_enabled['article'] && $this->should_add_article_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'article_schema' ) && $can_add_schema() ) {
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'article_schema', [ 'title' => $title ], $initial_status );
         }
 
         // BreadcrumbList for content with ancestors and no breadcrumb schema.
-        if ( $this->should_add_breadcrumb_schema( $post_id, $content ) && ! $this->has_open_task( $post_id, 'breadcrumb_schema' ) ) {
+        if ( $schema_enabled['breadcrumb'] && $this->should_add_breadcrumb_schema( $post_id, $content ) && ! $this->has_open_task( $post_id, 'breadcrumb_schema' ) && $can_add_schema() ) {
             $trail = $this->get_breadcrumb_trail( $post_id );
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'breadcrumb_schema', [ 'trail' => $trail ], $initial_status );
         }
 
         // HowTo when steps detected and missing schema.
-        if ( $this->should_add_howto_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'howto_schema' ) ) {
+        if ( $schema_enabled['howto'] && $this->should_add_howto_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'howto_schema' ) && $can_add_schema() ) {
             $steps_html = $this->extract_step_list_html( $content );
             if ( $steps_html ) {
                 Versa_AI_SEO_Tasks::insert_task( $post_id, 'howto_schema', [ 'steps_html' => $steps_html, 'title' => $title ], $initial_status );
@@ -212,40 +235,40 @@ class Versa_AI_Optimizer {
 
         // VideoObject when embedded video detected and missing schema.
         $video = $this->detect_video_embed( $content );
-        if ( $video && ! $this->content_has_schema_type( $content, 'VideoObject' ) && ! $this->has_open_task( $post_id, 'video_schema' ) ) {
+        if ( $schema_enabled['video'] && $video && ! $this->content_has_schema_type( $content, 'VideoObject' ) && ! $this->has_open_task( $post_id, 'video_schema' ) && $can_add_schema() ) {
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'video_schema', $video + [ 'title' => $title ], $initial_status );
         }
 
         // Product schema when product-like signals found.
-        if ( $this->should_add_product_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'product_schema' ) ) {
+        if ( $schema_enabled['product'] && $this->should_add_product_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'product_schema' ) && $can_add_schema() ) {
             $product_payload = $this->extract_product_signals( $content, $title );
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'product_schema', $product_payload, $initial_status );
         }
 
         // Service schema when service-like page detected.
-        if ( $this->should_add_service_schema( $post, $content, $profile ) && ! $this->has_open_task( $post_id, 'service_schema' ) ) {
+        if ( $schema_enabled['service'] && $this->should_add_service_schema( $post, $content, $profile ) && ! $this->has_open_task( $post_id, 'service_schema' ) && $can_add_schema() ) {
             $service_payload = [ 'title' => $title, 'description' => wp_trim_words( wp_strip_all_tags( $content ), 60, '' ) ];
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'service_schema', $service_payload, $initial_status );
         }
 
         // Event schema when event signals found.
-        if ( $this->should_add_event_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'event_schema' ) ) {
+        if ( $schema_enabled['event'] && $this->should_add_event_schema( $post, $content ) && ! $this->has_open_task( $post_id, 'event_schema' ) && $can_add_schema() ) {
             $event_payload = $this->extract_event_signals( $content, $title );
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'event_schema', $event_payload, $initial_status );
         }
 
         // WebSite + SearchAction for front page when missing.
         $front_page_id = (int) get_option( 'page_on_front' );
-        if ( $front_page_id > 0 && $post_id === $front_page_id && ! $this->content_has_schema_type( $content, 'WebSite' ) && ! $this->has_open_task( $post_id, 'website_schema' ) ) {
+        if ( $schema_enabled['website'] && $front_page_id > 0 && $post_id === $front_page_id && ! $this->content_has_schema_type( $content, 'WebSite' ) && ! $this->has_open_task( $post_id, 'website_schema' ) && $can_add_schema() ) {
             Versa_AI_SEO_Tasks::insert_task( $post_id, 'website_schema', [], $initial_status );
         }
 
         // Organization/LocalBusiness schema for front page only.
         if ( $front_page_id > 0 && $post_id === $front_page_id && ! $this->content_has_schema_type( $content, 'Organization' ) && ! $this->content_has_schema_type( $content, 'LocalBusiness' ) ) {
-            if ( ! $this->has_open_task( $post_id, 'localbusiness_schema' ) ) {
+            if ( $schema_enabled['localbusiness'] && ! $this->has_open_task( $post_id, 'localbusiness_schema' ) && $can_add_schema() ) {
                 Versa_AI_SEO_Tasks::insert_task( $post_id, 'localbusiness_schema', [], $initial_status );
             }
-            if ( ! $this->has_open_task( $post_id, 'org_schema' ) ) {
+            if ( $schema_enabled['org'] && ! $this->has_open_task( $post_id, 'org_schema' ) && $can_add_schema() ) {
                 Versa_AI_SEO_Tasks::insert_task( $post_id, 'org_schema', [], $initial_status );
             }
         }
@@ -1754,6 +1777,17 @@ class Versa_AI_Optimizer {
             'enable_faq_tasks'    => true,
             'faq_min_word_count'  => 600,
             'faq_allowed_post_types'=> [ 'post', 'page' ],
+            'enable_article_schema'     => true,
+            'enable_breadcrumb_schema'  => true,
+            'enable_howto_schema'       => true,
+            'enable_video_schema'       => true,
+            'enable_product_schema'     => true,
+            'enable_service_schema'     => true,
+            'enable_event_schema'       => true,
+            'enable_website_schema'     => true,
+            'enable_org_schema'         => true,
+            'enable_localbusiness_schema' => true,
+            'schema_tasks_per_run'      => 12,
             'auto_create_service_pages' => false,
             'auto_service_post_type'    => 'page',
             'auto_service_auto_publish' => false,

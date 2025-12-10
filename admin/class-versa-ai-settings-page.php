@@ -73,6 +73,17 @@ class Versa_AI_Settings_Page {
             'enable_faq_tasks'      => true,
             'faq_min_word_count'    => 600,
             'faq_allowed_post_types'=> array( 'post', 'page' ),
+            'enable_article_schema'     => true,
+            'enable_breadcrumb_schema'  => true,
+            'enable_howto_schema'       => true,
+            'enable_video_schema'       => true,
+            'enable_product_schema'     => true,
+            'enable_service_schema'     => true,
+            'enable_event_schema'       => true,
+            'enable_website_schema'     => true,
+            'enable_org_schema'         => true,
+            'enable_localbusiness_schema' => true,
+            'schema_tasks_per_run'      => 12,
             'auto_create_service_pages' => false,
             'auto_service_post_type'    => 'page',
             'auto_service_auto_publish' => false,
@@ -125,6 +136,9 @@ class Versa_AI_Settings_Page {
             $faq_allowed_post_types = array( 'post', 'page' );
         }
 
+        $schema_tasks_per_run = isset( $input['schema_tasks_per_run'] ) ? (int) $input['schema_tasks_per_run'] : 12;
+        $schema_tasks_per_run = max( 0, min( 50, $schema_tasks_per_run ) );
+
         $auto_service_post_type = isset( $input['auto_service_post_type'] ) ? sanitize_key( $input['auto_service_post_type'] ) : 'page';
         if ( empty( $auto_service_post_type ) ) {
             $auto_service_post_type = 'page';
@@ -160,6 +174,17 @@ class Versa_AI_Settings_Page {
             'enable_faq_tasks'      => ! empty( $input['enable_faq_tasks'] ),
             'faq_min_word_count'    => $faq_min_word_count,
             'faq_allowed_post_types'=> $faq_allowed_post_types,
+            'enable_article_schema'     => ! empty( $input['enable_article_schema'] ),
+            'enable_breadcrumb_schema'  => ! empty( $input['enable_breadcrumb_schema'] ),
+            'enable_howto_schema'       => ! empty( $input['enable_howto_schema'] ),
+            'enable_video_schema'       => ! empty( $input['enable_video_schema'] ),
+            'enable_product_schema'     => ! empty( $input['enable_product_schema'] ),
+            'enable_service_schema'     => ! empty( $input['enable_service_schema'] ),
+            'enable_event_schema'       => ! empty( $input['enable_event_schema'] ),
+            'enable_website_schema'     => ! empty( $input['enable_website_schema'] ),
+            'enable_org_schema'         => ! empty( $input['enable_org_schema'] ),
+            'enable_localbusiness_schema' => ! empty( $input['enable_localbusiness_schema'] ),
+            'schema_tasks_per_run'      => $schema_tasks_per_run,
             'auto_create_service_pages' => ! empty( $input['auto_create_service_pages'] ),
             'auto_service_post_type'    => $auto_service_post_type,
             'auto_service_auto_publish' => ! empty( $input['auto_service_auto_publish'] ),
