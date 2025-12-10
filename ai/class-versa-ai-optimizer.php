@@ -1315,29 +1315,70 @@ class Versa_AI_Optimizer {
         switch ( $task_type ) {
             case 'faq_schema':
                 $count   = is_array( $schema['mainEntity'] ?? null ) ? count( $schema['mainEntity'] ) : 0;
-                $summary = 'FAQPage with ' . $count . ' questions.';
+                $first_q = '';
+                if ( $count > 0 && isset( $schema['mainEntity'][0]['name'] ) ) {
+                    $first_q = $safe_str( $schema['mainEntity'][0]['name'], 80 );
+                }
+                $summary = 'Adds FAQPage JSON-LD with ' . $count . ' Q&A pairs';
+                if ( $first_q ) {
+                    $summary .= '; first question: ' . $first_q;
+                }
+                $summary .= '.';
                 break;
 
             case 'article_schema':
                 $headline = $safe_str( $schema['headline'] ?? ( $schema['name'] ?? '' ) );
                 $author   = $safe_str( $schema['author']['name'] ?? '' );
                 $date     = $safe_str( $schema['datePublished'] ?? '' );
-                $summary  = 'Article schema for "' . $headline . '" by ' . ( $author ?: 'unknown author' );
+                $mod      = $safe_str( $schema['dateModified'] ?? '' );
+                $summary  = 'Adds Article/BlogPosting JSON-LD for "' . $headline . '" by ' . ( $author ?: 'unknown author' );
                 if ( $date ) {
                     $summary .= ' (published ' . $date . ')';
                 }
-                $summary .= '.';
+                if ( $mod ) {
+                    $summary .= '; modified ' . $mod;
+                }
+                $summary .= ' with canonical URL and author attribution.';
                 break;
 
             case 'breadcrumb_schema':
                 $items   = is_array( $schema['itemListElement'] ?? null ) ? count( $schema['itemListElement'] ) : 0;
-                $summary = 'BreadcrumbList with ' . $items . ' items.';
+                $first   = '';
+                if ( $items > 0 && isset( $schema['itemListElement'][0]['item']['name'] ) ) {
+                    $first = $safe_str( $schema['itemListElement'][0]['item']['name'], 60 );
+                }
+                $summary = 'Adds BreadcrumbList JSON-LD with ' . $items . ' crumbs';
+                if ( $first ) {
+                    $summary .= '; starts with ' . $first;
+                }
+                $summary .= '.';
                 break;
 
             case 'howto_schema':
-                $steps   = is_array( $schema['step'] ?? null ) ? count( $schema['step'] ) : 0;
-                $name    = $safe_str( $schema['name'] ?? '' );
-                $summary = 'HowTo "' . $name . '" with ' . $steps . ' steps.';
+                $steps      = is_array( $schema['step'] ?? null ) ? $schema['step'] : [];
+                $step_count = is_array( $steps ) ? count( $steps ) : 0;
+                $name       = $safe_str( $schema['name'] ?? '' );
+                $desc       = $safe_str( $schema['description'] ?? '' );
+                $lead_steps = [];
+                if ( is_array( $steps ) ) {
+                    foreach ( $steps as $step ) {
+                        if ( isset( $step['name'] ) ) {
+                            $lead_steps[] = $safe_str( $step['name'], 80 );
+                        }
+                        if ( count( $lead_steps ) >= 3 ) {
+                            break;
+                        }
+                    }
+                }
+
+                $summary = 'Adds HowTo JSON-LD "' . $name . '" with ' . $step_count . ' steps';
+                if ( $desc ) {
+                    $summary .= ' covering: ' . $desc;
+                }
+                if ( ! empty( $lead_steps ) ) {
+                    $summary .= ' | lead steps: ' . implode( '; ', $lead_steps );
+                }
+                $summary .= '.';
                 break;
 
             case 'video_schema':
@@ -1345,7 +1386,8 @@ class Versa_AI_Optimizer {
                 $duration  = $safe_str( $schema['duration'] ?? '' );
                 $upload    = $safe_str( $schema['uploadDate'] ?? '' );
                 $video_url = $safe_str( $schema['contentUrl'] ?? ( $schema['url'] ?? '' ) );
-                $summary   = 'VideoObject "' . $name . '"';
+                $thumb     = $safe_str( $schema['thumbnailUrl'] ?? '' );
+                $summary   = 'Adds VideoObject JSON-LD for "' . $name . '"';
                 if ( $duration ) {
                     $summary .= ' (' . $duration . ')';
                 }
@@ -1354,6 +1396,9 @@ class Versa_AI_Optimizer {
                 }
                 if ( $video_url ) {
                     $summary .= '; source: ' . $video_url;
+                }
+                if ( $thumb ) {
+                    $summary .= '; thumbnail present';
                 }
                 $summary .= '.';
                 break;
@@ -1365,7 +1410,7 @@ class Versa_AI_Optimizer {
                 $price    = is_array( $offer ) ? ( $offer['price'] ?? '' ) : '';
                 $currency = is_array( $offer ) ? ( $offer['priceCurrency'] ?? '' ) : '';
                 $avail    = is_array( $offer ) ? ( $offer['availability'] ?? '' ) : '';
-                $summary  = 'Product "' . $name . '"';
+                $summary  = 'Adds Product JSON-LD for "' . $name . '"';
                 if ( $brand ) {
                     $summary .= ' by ' . $brand;
                 }
@@ -1374,6 +1419,9 @@ class Versa_AI_Optimizer {
                 }
                 if ( $avail ) {
                     $summary .= ' (' . $avail . ')';
+                }
+                if ( ! empty( $schema['sku'] ) ) {
+                    $summary .= '; SKU ' . $safe_str( $schema['sku'] );
                 }
                 $summary .= '.';
                 if ( '' === (string) $price || '0' === (string) $price ) {
@@ -1391,7 +1439,7 @@ class Versa_AI_Optimizer {
                 $offers      = $schema['offers'] ?? [];
                 $price       = is_array( $offers ) ? ( $offers['price'] ?? '' ) : '';
                 $currency    = is_array( $offers ) ? ( $offers['priceCurrency'] ?? '' ) : '';
-                $summary     = 'Service "' . $name . '" by ' . ( $provider ?: 'provider not set' );
+                $summary     = 'Adds Service JSON-LD for "' . $name . '" by ' . ( $provider ?: 'provider not set' );
                 if ( $areas ) {
                     $summary .= '; areas served: ' . $areas;
                 }
@@ -1410,7 +1458,7 @@ class Versa_AI_Optimizer {
                 $end       = $safe_str( $schema['endDate'] ?? '' );
                 $location  = $safe_str( $schema['location']['name'] ?? ( $schema['location']['address']['streetAddress'] ?? '' ) );
                 $is_online = isset( $schema['eventAttendanceMode'] ) && false !== stripos( (string) $schema['eventAttendanceMode'], 'Online' );
-                $summary   = 'Event "' . $name . '" starting ' . ( $start ?: 'TBD' );
+                $summary   = 'Adds Event JSON-LD for "' . $name . '" starting ' . ( $start ?: 'TBD' );
                 if ( $end ) {
                     $summary .= ' ending ' . $end;
                 }
@@ -1431,13 +1479,13 @@ class Versa_AI_Optimizer {
             case 'website_schema':
                 $name    = $safe_str( $schema['name'] ?? '' );
                 $url     = $safe_str( $schema['url'] ?? '' );
-                $summary = 'WebSite schema for ' . ( $name ?: 'site' );
+                $summary = 'Adds WebSite JSON-LD for ' . ( $name ?: 'site' );
                 if ( $url ) {
                     $summary .= ' (' . $url . ')';
                 }
                 $has_search = ! empty( $schema['potentialAction'] );
                 if ( $has_search ) {
-                    $summary .= '; includes SearchAction.';
+                    $summary .= '; includes site search action.';
                 } else {
                     $warnings[] = 'SearchAction missing; ensure search target is included.';
                 }
@@ -1448,7 +1496,7 @@ class Versa_AI_Optimizer {
                 $name    = $safe_str( $schema['name'] ?? '' );
                 $url     = $safe_str( $schema['url'] ?? '' );
                 $logo    = $safe_str( $schema['logo'] ?? '' );
-                $summary = 'Organization schema for ' . $name;
+                $summary = 'Adds Organization JSON-LD for ' . $name;
                 if ( $url ) {
                     $summary .= ' (' . $url . ')';
                 }
@@ -1465,7 +1513,7 @@ class Versa_AI_Optimizer {
                 $address     = $safe_str( $schema['address']['streetAddress'] ?? '' );
                 $phone       = $safe_str( $schema['telephone'] ?? '' );
                 $has_geo     = ! empty( $schema['geo']['latitude'] ) && ! empty( $schema['geo']['longitude'] );
-                $summary     = 'LocalBusiness schema for ' . $name;
+                $summary     = 'Adds LocalBusiness JSON-LD for ' . $name;
                 if ( $address ) {
                     $summary .= '; address: ' . $address;
                 }
