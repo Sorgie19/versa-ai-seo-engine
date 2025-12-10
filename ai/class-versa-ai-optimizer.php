@@ -293,29 +293,15 @@ class Versa_AI_Optimizer {
                 continue;
             }
 
-        $prompt[] = 'Include FAQ section with 3-5 Q&A if missing.';
             $page['post_slug'] = get_post_field( 'post_name', $post_id );
 
             if ( isset( $page['status'] ) && $page['status'] >= 400 ) {
                 $issues[] = array_merge( $page, [
                     'issue'              => 'http_error',
-
-        $prompt_text = Versa_AI_Prompts::render( 'optimizer-expand-content', [
-            'business_name'      => $profile['business_name'],
-            'services'           => implode( ', ', $profile['services'] ),
-            'locations'          => implode( ', ', $profile['locations'] ),
-            'target_audience'    => $profile['target_audience'],
-            'tone_of_voice'      => $profile['tone_of_voice'],
-            'max_words_per_post' => (int) $profile['max_words_per_post'],
-            'content'            => $content,
-        ], function () use ( $prompt ) {
-            return implode( "\n", $prompt );
-        } );
-
-        $messages = [
-            [ 'role' => 'system', 'content' => 'You are an SEO content improver. Reply with strict JSON only.' ],
-            [ 'role' => 'user', 'content' => $prompt_text ],
-        ];
+                    'summary'            => 'Page returned HTTP ' . $page['status'],
+                    'recommended_action' => 'Resolve the HTTP error or redirect to a valid URL.',
+                    'priority'           => 'high',
+                ] );
             }
 
             if ( ! empty( $page['noindex'] ) ) {
