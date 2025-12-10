@@ -47,7 +47,12 @@ class Versa_AI_Tasks_Page {
         $task_id = isset( $_GET['task_id'] ) ? (int) $_GET['task_id'] : 0;
         check_admin_referer( 'versa_ai_task_action_' . $task_id );
         if ( $task_id ) {
+            $task = Versa_AI_SEO_Tasks::get_task( $task_id );
             Versa_AI_SEO_Tasks::update_task_status_only( $task_id, 'pending' );
+            // If a site audit is approved, kick the worker immediately so follow-up tasks spawn right away.
+            if ( $task && 'site_audit' === $task['task_type'] ) {
+                do_action( 'versa_ai_seo_worker' );
+            }
         }
         wp_safe_redirect( admin_url( 'admin.php?page=' . self::MENU_SLUG ) );
         exit;
@@ -103,6 +108,18 @@ class Versa_AI_Tasks_Page {
         if ( ! empty( $task_ids ) ) {
             if ( 'approve' === $action ) {
                 Versa_AI_SEO_Tasks::bulk_update_tasks( $task_ids, 'pending' );
+                // If any approved tasks are site audits, trigger the worker to spawn follow-ups immediately.
+                $has_site_audit = false;
+                foreach ( $task_ids as $id ) {
+                    $t = Versa_AI_SEO_Tasks::get_task( (int) $id );
+                    if ( $t && 'site_audit' === $t['task_type'] ) {
+                        $has_site_audit = true;
+                        break;
+                    }
+                }
+                if ( $has_site_audit ) {
+                    do_action( 'versa_ai_seo_worker' );
+                }
             } elseif ( 'decline' === $action ) {
                 Versa_AI_SEO_Tasks::bulk_update_tasks( $task_ids, 'failed', [ 'message' => 'Declined by admin (bulk)' ] );
             }
