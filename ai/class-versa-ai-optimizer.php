@@ -181,8 +181,8 @@ class Versa_AI_Optimizer {
      */
     private function maybe_create_schema_tasks( int $post_id, WP_Post $post, array $snapshot ): void {
         $profile = $this->get_profile();
-        $require_approval = (bool) ( $profile['require_task_approval'] ?? false );
-        $initial_status   = $require_approval ? 'awaiting_approval' : 'pending';
+        // Site audit recommendations should always surface for approval to avoid auto-creating changes.
+        $initial_status = 'awaiting_approval';
 
         $max_schema_tasks = isset( $profile['schema_tasks_per_run'] ) ? (int) $profile['schema_tasks_per_run'] : 0;
         $created_schema   = 0;
