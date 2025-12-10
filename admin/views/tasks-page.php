@@ -1,23 +1,29 @@
-<?php
-/**
- * Tasks admin view.
- *
- * @var array $awaiting tasks waiting approval.
- * @var array $recent   recent done/failed tasks.
- */
+                        <td>
+                            <?php
+                            $slug = $task['post_id'] ? get_post_field( 'post_name', (int) $task['post_id'] ) : '';
+                            if ( $task['post_id'] && $post_link ) :
+                                ?>
+                                <a href="<?php echo esc_url( $post_link ); ?>">#<?php echo esc_html( $task['post_id'] ); ?></a><?php if ( $slug ) : ?> (<?php echo esc_html( $slug ); ?>)<?php endif; ?>
+                            <?php else : ?>
+                                <?php esc_html_e( 'Site-wide', 'versa-ai-seo-engine' ); ?>
+                            <?php endif; ?>
+                        </td>
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
 <div class="wrap">
     <h1><?php esc_html_e( 'Versa AI Tasks', 'versa-ai-seo-engine' ); ?></h1>
-
-    <h2><?php esc_html_e( 'Awaiting Approval', 'versa-ai-seo-engine' ); ?></h2>
-    <?php if ( empty( $awaiting ) ) : ?>
-        <p><?php esc_html_e( 'No tasks are awaiting approval.', 'versa-ai-seo-engine' ); ?></p>
-    <?php else : ?>
-        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-            <input type="hidden" name="action" value="versa_ai_bulk_tasks" />
+                        <td>
+                            <?php
+                            $slug = $task['post_id'] ? get_post_field( 'post_name', (int) $task['post_id'] ) : '';
+                            if ( $task['post_id'] && $post_link ) :
+                                ?>
+                                <a href="<?php echo esc_url( $post_link ); ?>">#<?php echo esc_html( $task['post_id'] ); ?></a><?php if ( $slug ) : ?> (<?php echo esc_html( $slug ); ?>)<?php endif; ?>
+                            <?php else : ?>
+                                <?php esc_html_e( 'Site-wide', 'versa-ai-seo-engine' ); ?>
+                            <?php endif; ?>
+                        </td>
             <?php wp_nonce_field( 'versa_ai_bulk_tasks' ); ?>
 
             <div style="margin: 0 0 12px;">
@@ -101,8 +107,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <tr>
                         <td><?php echo esc_html( $task['id'] ); ?></td>
                         <td>
-                            <?php if ( $task['post_id'] && $post_link ) : ?>
-                                <a href="<?php echo esc_url( $post_link ); ?>">#<?php echo esc_html( $task['post_id'] ); ?></a>
+                            <?php
+                            $slug = $task['post_id'] ? get_post_field( 'post_name', (int) $task['post_id'] ) : '';
+                            if ( $task['post_id'] && $post_link ) :
+                                ?>
+                                <a href="<?php echo esc_url( $post_link ); ?>">#<?php echo esc_html( $task['post_id'] ); ?></a><?php if ( $slug ) : ?> (<?php echo esc_html( $slug ); ?>)<?php endif; ?>
                             <?php else : ?>
                                 <?php esc_html_e( 'Site-wide', 'versa-ai-seo-engine' ); ?>
                             <?php endif; ?>
