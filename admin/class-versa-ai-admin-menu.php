@@ -46,13 +46,51 @@ class Versa_AI_Admin_Menu {
             65
         );
 
+        $tasks_page = $this->tasks_page;
+
         add_submenu_page(
             Versa_AI_Settings_Page::MENU_SLUG,
             __( 'Tasks', 'versa-ai-seo-engine' ),
             __( 'Tasks', 'versa-ai-seo-engine' ),
             'manage_options',
             Versa_AI_Tasks_Page::MENU_SLUG,
-            [ $this->tasks_page, 'render' ]
+            [ $tasks_page, 'render' ]
+        );
+
+        add_submenu_page(
+            Versa_AI_Settings_Page::MENU_SLUG,
+            __( 'Tasks – Awaiting Approval', 'versa-ai-seo-engine' ),
+            __( 'Tasks – Awaiting Approval', 'versa-ai-seo-engine' ),
+            'manage_options',
+            Versa_AI_Tasks_Page::MENU_SLUG . '-awaiting',
+            static function () use ( $tasks_page ) {
+                $_GET['tab'] = 'awaiting';
+                $tasks_page->render();
+            }
+        );
+
+        add_submenu_page(
+            Versa_AI_Settings_Page::MENU_SLUG,
+            __( 'Tasks – Awaiting Apply', 'versa-ai-seo-engine' ),
+            __( 'Tasks – Awaiting Apply', 'versa-ai-seo-engine' ),
+            'manage_options',
+            Versa_AI_Tasks_Page::MENU_SLUG . '-awaiting-apply',
+            static function () use ( $tasks_page ) {
+                $_GET['tab'] = 'awaiting_apply';
+                $tasks_page->render();
+            }
+        );
+
+        add_submenu_page(
+            Versa_AI_Settings_Page::MENU_SLUG,
+            __( 'Tasks – Recent', 'versa-ai-seo-engine' ),
+            __( 'Tasks – Recent', 'versa-ai-seo-engine' ),
+            'manage_options',
+            Versa_AI_Tasks_Page::MENU_SLUG . '-recent',
+            static function () use ( $tasks_page ) {
+                $_GET['tab'] = 'recent';
+                $tasks_page->render();
+            }
         );
 
         add_submenu_page(

@@ -9,8 +9,10 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
+
+$default_tab_id = isset( $default_tab_id ) ? $default_tab_id : 'versa-ai-tab-awaiting';
 ?>
-<div class="wrap">
+<div class="wrap" id="versa-ai-tasks-root" data-default-tab="<?php echo esc_attr( $default_tab_id ); ?>">
     <h1><?php esc_html_e( 'Versa AI Tasks', 'versa-ai-seo-engine' ); ?></h1>
 
     <?php if ( ! empty( $cron_actions ) ) : ?>
@@ -29,9 +31,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     <div style="display:flex; align-items:center; gap:12px; margin:12px 0 18px; flex-wrap:wrap;">
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-awaiting" aria-pressed="true"><?php esc_html_e( 'Awaiting Approval', 'versa-ai-seo-engine' ); ?></button>
-            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-awaiting-apply" aria-pressed="false"><?php esc_html_e( 'Awaiting Apply', 'versa-ai-seo-engine' ); ?></button>
-            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-recent" aria-pressed="false"><?php esc_html_e( 'Recent Activity', 'versa-ai-seo-engine' ); ?></button>
+            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-awaiting" aria-pressed="<?php echo 'versa-ai-tab-awaiting' === $default_tab_id ? 'true' : 'false'; ?>"><?php esc_html_e( 'Awaiting Approval', 'versa-ai-seo-engine' ); ?></button>
+            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-awaiting-apply" aria-pressed="<?php echo 'versa-ai-tab-awaiting-apply' === $default_tab_id ? 'true' : 'false'; ?>"><?php esc_html_e( 'Awaiting Apply', 'versa-ai-seo-engine' ); ?></button>
+            <button class="button versa-ai-tab-button" data-target="versa-ai-tab-recent" aria-pressed="<?php echo 'versa-ai-tab-recent' === $default_tab_id ? 'true' : 'false'; ?>"><?php esc_html_e( 'Recent Activity', 'versa-ai-seo-engine' ); ?></button>
         </div>
         <label for="versa_ai_task_filter" style="display:flex; align-items:center; gap:6px;">
             <span class="screen-reader-text"><?php esc_html_e( 'Filter tasks', 'versa-ai-seo-engine' ); ?></span>
@@ -39,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         </label>
     </div>
 
-    <div id="versa-ai-tab-awaiting" class="versa-ai-tab-panel" aria-hidden="false">
+    <div id="versa-ai-tab-awaiting" class="versa-ai-tab-panel" aria-hidden="<?php echo 'versa-ai-tab-awaiting' === $default_tab_id ? 'false' : 'true'; ?>" style="display:<?php echo 'versa-ai-tab-awaiting' === $default_tab_id ? '' : 'none'; ?>;">
     <h2 style="margin-top:0;"><?php esc_html_e( 'Awaiting Approval', 'versa-ai-seo-engine' ); ?></h2>
     <?php if ( empty( $awaiting ) ) : ?>
         <p><?php esc_html_e( 'No tasks are awaiting approval.', 'versa-ai-seo-engine' ); ?></p>
@@ -140,7 +142,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     <?php endif; ?>
     </div>
 
-    <div id="versa-ai-tab-recent" class="versa-ai-tab-panel" aria-hidden="true" style="display:none;">
+    <div id="versa-ai-tab-recent" class="versa-ai-tab-panel" aria-hidden="<?php echo 'versa-ai-tab-recent' === $default_tab_id ? 'false' : 'true'; ?>" style="display:<?php echo 'versa-ai-tab-recent' === $default_tab_id ? '' : 'none'; ?>;">
     <h2 style="margin-top:0;"><?php esc_html_e( 'Recent Activity', 'versa-ai-seo-engine' ); ?></h2>
     <?php if ( empty( $recent ) ) : ?>
         <p><?php esc_html_e( 'No recent tasks.', 'versa-ai-seo-engine' ); ?></p>
@@ -199,7 +201,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     <?php endif; ?>
     </div>
 
-    <div id="versa-ai-tab-awaiting-apply" class="versa-ai-tab-panel" aria-hidden="true" style="display:none;">
+    <div id="versa-ai-tab-awaiting-apply" class="versa-ai-tab-panel" aria-hidden="<?php echo 'versa-ai-tab-awaiting-apply' === $default_tab_id ? 'false' : 'true'; ?>" style="display:<?php echo 'versa-ai-tab-awaiting-apply' === $default_tab_id ? '' : 'none'; ?>;">
     <h2 style="margin-top:0;"><?php esc_html_e( 'Awaiting Apply', 'versa-ai-seo-engine' ); ?></h2>
     <?php if ( empty( $awaiting_apply ) ) : ?>
         <p><?php esc_html_e( 'No tasks are awaiting apply.', 'versa-ai-seo-engine' ); ?></p>
@@ -298,6 +300,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     const buttons = Array.from( document.querySelectorAll( '.versa-ai-tab-button' ) );
     const panels = Array.from( document.querySelectorAll( '.versa-ai-tab-panel' ) );
     const filter = document.getElementById( 'versa_ai_task_filter' );
+    const root   = document.getElementById( 'versa-ai-tasks-root' );
 
     const showPanel = ( id ) => {
         panels.forEach( ( panel ) => {
@@ -314,6 +317,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     buttons.forEach( ( btn ) => {
         btn.addEventListener( 'click', () => showPanel( btn.dataset.target ) );
     } );
+
+    const defaultTab = root?.dataset?.defaultTab || 'versa-ai-tab-awaiting';
+    showPanel( defaultTab );
 
     const filterRows = () => {
         const term = ( filter?.value || '' ).toLowerCase();

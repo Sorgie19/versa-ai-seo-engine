@@ -30,6 +30,19 @@ class Versa_AI_Tasks_Page {
         $awaiting_apply = Versa_AI_SEO_Tasks::get_tasks_by_status( 'awaiting_apply', 50 );
         $recent   = Versa_AI_SEO_Tasks::get_tasks_by_status( [ 'done', 'failed' ], 20 );
 
+        $tab_param = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'awaiting';
+        $allowed_tabs = [ 'awaiting', 'awaiting_apply', 'recent' ];
+        if ( ! in_array( $tab_param, $allowed_tabs, true ) ) {
+            $tab_param = 'awaiting';
+        }
+
+        $default_tab_id = 'versa-ai-tab-awaiting';
+        if ( 'awaiting_apply' === $tab_param ) {
+            $default_tab_id = 'versa-ai-tab-awaiting-apply';
+        } elseif ( 'recent' === $tab_param ) {
+            $default_tab_id = 'versa-ai-tab-recent';
+        }
+
         $cron_actions = [
             'versa_ai_weekly_planner'   => __( 'Run Weekly Planner', 'versa-ai-seo-engine' ),
             'versa_ai_daily_writer'     => __( 'Run Daily Writer', 'versa-ai-seo-engine' ),
