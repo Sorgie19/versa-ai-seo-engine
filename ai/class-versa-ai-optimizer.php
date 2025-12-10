@@ -196,13 +196,13 @@ class Versa_AI_Optimizer {
      * Crawl the site and draft site-wide SEO recommendations as tasks.
      */
     private function maybe_crawl_site_for_recommendations(): void {
-        // Limit crawl frequency (every 6 hours).
+        // Limit crawl frequency (every 4 hours).
         $transient_key = 'versa_ai_site_crawl_ran';
         if ( get_transient( $transient_key ) ) {
             return;
         }
 
-        $pages = $this->crawler->crawl( 30 );
+        $pages = $this->crawler->crawl( 120 );
         if ( empty( $pages ) ) {
             return;
         }
@@ -217,6 +217,34 @@ class Versa_AI_Optimizer {
 
             $page['post_id'] = $post_id;
             $page['post_slug'] = get_post_field( 'post_name', $post_id );
+
+            if ( isset( $page['status'] ) && $page['status'] >= 400 ) {
+                $issues[] = array_merge( $page, [
+                    'issue'              => 'http_error',
+                    'summary'            => 'Page returns an HTTP error',
+                    'recommended_action' => 'Fix the URL or redirect it to a valid destination.',
+                    'priority'           => 'high',
+                ] );
+                continue;
+            }
+
+            if ( ! empty( $page['noindex'] ) ) {
+                $issues[] = array_merge( $page, [
+                    'issue'              => 'noindex_tag',
+                    'summary'            => 'Page is blocked by noindex',
+                    'recommended_action' => 'Remove the noindex directive if this page should rank.',
+                    'priority'           => 'high',
+                ] );
+            }
+
+            if ( ! empty( $page['canonical'] ) && $this->canonical_mismatch( $page['url'], $page['canonical'] ) ) {
+                $issues[] = array_merge( $page, [
+                    'issue'              => 'canonical_mismatch',
+                    'summary'            => 'Canonical URL points elsewhere',
+                    'recommended_action' => 'Update canonical to the live URL or ensure the canonical target is correct.',
+                    'priority'           => 'medium',
+                ] );
+            }
 
             if ( ! $page['has_title'] ) {
                 $issues[] = array_merge( $page, [
@@ -236,7 +264,16 @@ class Versa_AI_Optimizer {
                 ] );
             }
 
-            if ( $page['word_count'] > 0 && $page['word_count'] < 400 ) {
+            if ( isset( $page['has_h1'] ) && ! $page['has_h1'] ) {
+                $issues[] = array_merge( $page, [
+                    'issue'              => 'missing_h1',
+                    'summary'            => 'Missing H1 heading',
+                    'recommended_action' => 'Add a single, descriptive H1 heading that matches the topic.',
+                    'priority'           => 'medium',
+                ] );
+            }
+
+            if ( $page['word_count'] > 0 && $page['word_count'] < 600 ) {
                 $issues[] = array_merge( $page, [
                     'issue'              => 'thin_content',
                     'summary'            => 'Content is thin',
@@ -266,12 +303,15 @@ class Versa_AI_Optimizer {
                 'recommended_action' => $issue['recommended_action'],
                 'priority'           => $issue['priority'],
                 'word_count'         => $issue['word_count'],
+                'status'             => $issue['status'] ?? 200,
+                'canonical'          => $issue['canonical'] ?? '',
+                'meta_robots'        => $issue['meta_robots'] ?? '',
             ];
 
             Versa_AI_SEO_Tasks::insert_task( $issue['post_id'], 'site_audit', $payload, $initial_status );
         }
 
-        set_transient( $transient_key, 1, 6 * HOUR_IN_SECONDS );
+        set_transient( $transient_key, 1, 4 * HOUR_IN_SECONDS );
     }
 
     /**
@@ -529,6 +569,35 @@ class Versa_AI_Optimizer {
             ];
         }
         return $tasks;
+    }
+
+    private function canonical_mismatch( string $url, string $canonical ): bool {
+        if ( empty( $url ) || empty( $canonical ) ) {
+            return false;
+        }
+
+        $normalize = static function ( string $value ): string {
+            $parts = wp_parse_url( $value );
+            if ( empty( $parts['host'] ) ) {
+                return '';
+            }
+
+            $scheme = $parts['scheme'] ?? 'https';
+            $path   = isset( $parts['path'] ) ? '/' . ltrim( $parts['path'], '/' ) : '/';
+            $path   = '/' === $path ? '/' : untrailingslashit( $path );
+            $query  = isset( $parts['query'] ) ? '?' . $parts['query'] : '';
+
+            return strtolower( $scheme . '://' . $parts['host'] . $path . $query );
+        };
+
+        $normalized_url       = $normalize( $url );
+        $normalized_canonical = $normalize( $canonical );
+
+        if ( ! $normalized_url || ! $normalized_canonical ) {
+            return false;
+        }
+
+        return $normalized_url !== $normalized_canonical;
     }
 
     private function get_posts_for_scan( int $limit ): array {
