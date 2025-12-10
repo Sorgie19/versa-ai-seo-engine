@@ -77,11 +77,12 @@ $awaiting_by_type = isset( $awaiting_by_type ) && is_array( $awaiting_by_type ) 
                 $anchor = 'task-group-' . sanitize_title( $type );
                 $label  = ucfirst( str_replace( '_', ' ', $type ) );
                 ?>
-                <div id="<?php echo esc_attr( $anchor ); ?>" class="versa-ai-task-group" style="margin-bottom:24px;">
-                    <h3 style="margin:8px 0 6px; display:flex; align-items:center; gap:8px;">
+                <details id="<?php echo esc_attr( $anchor ); ?>" class="versa-ai-task-group" style="margin-bottom:16px;" open>
+                    <summary style="margin:8px 0 6px; display:flex; align-items:center; gap:8px; cursor:pointer;">
                         <span><?php echo esc_html( $label ); ?></span>
                         <span class="versa-ai-badge"><?php echo count( $tasks ); ?></span>
-                    </h3>
+                        <span style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.5px;"><?php esc_html_e( 'Click to toggle', 'versa-ai-seo-engine' ); ?></span>
+                    </summary>
                     <table class="wp-list-table widefat fixed striped">
                         <thead>
                             <tr>
@@ -148,7 +149,7 @@ $awaiting_by_type = isset( $awaiting_by_type ) && is_array( $awaiting_by_type ) 
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                </div>
+                </details>
             <?php endforeach; ?>
 
             <?php if ( count( $awaiting ) > 400 ) : ?>
