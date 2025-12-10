@@ -29,6 +29,9 @@ class Versa_AI_Optimizer {
 
         $service_urls = Versa_AI_Service_URLs::get_urls();
 
+        // Optionally create missing service pages before scanning.
+        $this->maybe_create_missing_service_pages( $service_urls );
+
         foreach ( $posts as $post ) {
             $post_id = (int) $post->ID;
 
@@ -435,6 +438,11 @@ class Versa_AI_Optimizer {
      * Internal linking task.
      */
     private function handle_internal_linking( int $post_id, string $title, string $content, array $profile, array $service_urls, bool $apply_now ): array {
+        $service_urls = $this->filter_existing_service_urls( $service_urls );
+        if ( empty( $service_urls ) ) {
+            return [ 'success' => true, 'details' => [ 'message' => 'No valid service URLs to link.' ] ];
+        }
+
         $prompt = [];
         $prompt[] = 'Add a few natural internal links to the provided service URLs inside the HTML content.';
         $prompt[] = 'Do not change meaning or add new sections.';
@@ -599,6 +607,119 @@ class Versa_AI_Optimizer {
         return $tasks;
     }
 
+    private function filter_existing_service_urls( array $service_urls ): array {
+        $valid = [];
+        foreach ( $service_urls as $url ) {
+            $post_id = url_to_postid( $url );
+            if ( $post_id > 0 ) {
+                $valid[] = $url;
+            }
+        }
+        return $valid;
+    }
+
+    private function maybe_create_missing_service_pages( array $service_urls ): void {
+        if ( empty( $service_urls ) ) {
+            return;
+        }
+
+        $profile = $this->get_profile();
+        if ( empty( $profile['auto_create_service_pages'] ) ) {
+            return;
+        }
+
+        $post_type   = sanitize_key( $profile['auto_service_post_type'] ?? 'page' );
+        $auto_publish = ! empty( $profile['auto_service_auto_publish'] );
+        $max_per_run = isset( $profile['auto_service_max_per_run'] ) ? (int) $profile['auto_service_max_per_run'] : 3;
+        if ( $max_per_run < 0 ) {
+            $max_per_run = 0;
+        }
+        if ( 0 === $max_per_run ) {
+            $max_per_run = PHP_INT_MAX;
+        }
+
+        $created = 0;
+        foreach ( $service_urls as $url ) {
+            if ( $created >= $max_per_run ) {
+                break;
+            }
+
+            $post_id = url_to_postid( $url );
+            if ( $post_id > 0 ) {
+                continue;
+            }
+
+            $page_data = $this->derive_page_data_from_url( $url );
+            if ( ! $page_data ) {
+                continue;
+            }
+
+            $post_status = $auto_publish ? 'publish' : 'draft';
+
+            $new_post_id = wp_insert_post( [
+                'post_title'   => $page_data['title'],
+                'post_name'    => $page_data['slug'],
+                'post_type'    => $post_type,
+                'post_status'  => $post_status,
+                'post_content' => $this->generate_service_scaffold( $page_data['title'], $profile ),
+            ] );
+
+            if ( is_wp_error( $new_post_id ) || ! $new_post_id ) {
+                continue;
+            }
+
+            add_post_meta( $new_post_id, '_versa_ai_auto_service_page', 1, true );
+
+            $snapshot = $this->build_snapshot( $new_post_id, $service_urls );
+            $this->maybe_create_tasks( $new_post_id, $snapshot, $service_urls );
+
+            $created++;
+        }
+    }
+
+    private function derive_page_data_from_url( string $url ): ?array {
+        $path = wp_parse_url( $url, PHP_URL_PATH );
+        if ( empty( $path ) ) {
+            return null;
+        }
+
+        $basename = trim( basename( untrailingslashit( $path ) ) );
+        if ( empty( $basename ) ) {
+            $basename = trim( trim( $path ), '/' );
+        }
+        if ( empty( $basename ) ) {
+            return null;
+        }
+
+        $slug  = sanitize_title( $basename );
+        $title = ucwords( str_replace( '-', ' ', $basename ) );
+
+        return [
+            'slug'  => $slug,
+            'title' => $title,
+        ];
+    }
+
+    private function generate_service_scaffold( string $title, array $profile ): string {
+        $business = isset( $profile['business_name'] ) ? $profile['business_name'] : '';
+        $locations = isset( $profile['locations'] ) && is_array( $profile['locations'] ) ? implode( ', ', $profile['locations'] ) : '';
+
+        $lines   = [];
+        $lines[] = '<h1>' . esc_html( $title ) . '</h1>';
+        if ( $business || $locations ) {
+            $lines[] = '<p>' . esc_html( trim( $business . ' ' . $locations ) ) . '</p>';
+        }
+        $lines[] = '<p>Overview of the service and who it is for.</p>';
+        $lines[] = '<h2>What You Get</h2>';
+        $lines[] = '<ul><li>Benefit 1</li><li>Benefit 2</li><li>Benefit 3</li></ul>';
+        $lines[] = '<h2>Why Choose Us</h2>';
+        $lines[] = '<p>Proof points, experience, and differentiators.</p>';
+        $lines[] = '<h2>Next Steps</h2>';
+        $lines[] = '<p>Call to action: contact, book, or request a quote.</p>';
+
+        return implode( "\n", $lines );
+    }
+
     private function canonical_mismatch( string $url, string $canonical ): bool {
         if ( empty( $url ) || empty( $canonical ) ) {
             return false;
@@ -705,6 +826,10 @@ class Versa_AI_Optimizer {
             'enable_faq_tasks'    => true,
             'faq_min_word_count'  => 600,
             'faq_allowed_post_types'=> [ 'post', 'page' ],
+            'auto_create_service_pages' => false,
+            'auto_service_post_type'    => 'page',
+            'auto_service_auto_publish' => false,
+            'auto_service_max_per_run'  => 3,
         ];
 
         $stored = get_option( Versa_AI_Settings_Page::OPTION_KEY, [] );

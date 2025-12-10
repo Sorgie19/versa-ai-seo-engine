@@ -73,6 +73,10 @@ class Versa_AI_Settings_Page {
             'enable_faq_tasks'      => true,
             'faq_min_word_count'    => 600,
             'faq_allowed_post_types'=> array( 'post', 'page' ),
+            'auto_create_service_pages' => false,
+            'auto_service_post_type'    => 'page',
+            'auto_service_auto_publish' => false,
+            'auto_service_max_per_run'  => 3,
         );
 
         $stored = get_option( self::OPTION_KEY, array() );
@@ -119,6 +123,14 @@ class Versa_AI_Settings_Page {
             $faq_allowed_post_types = array( 'post', 'page' );
         }
 
+        $auto_service_post_type = isset( $input['auto_service_post_type'] ) ? sanitize_key( $input['auto_service_post_type'] ) : 'page';
+        if ( empty( $auto_service_post_type ) ) {
+            $auto_service_post_type = 'page';
+        }
+
+        $auto_service_max_per_run = isset( $input['auto_service_max_per_run'] ) ? (int) $input['auto_service_max_per_run'] : 3;
+        $auto_service_max_per_run = max( 0, min( 20, $auto_service_max_per_run ) );
+
         $new_api_key = isset( $input['openai_api_key'] ) ? trim( $input['openai_api_key'] ) : '';
         if ( '' === $new_api_key && isset( $stored_option['openai_api_key'] ) ) {
             $new_api_key = $stored_option['openai_api_key']; // keep existing if left blank.
@@ -143,6 +155,10 @@ class Versa_AI_Settings_Page {
             'enable_faq_tasks'      => ! empty( $input['enable_faq_tasks'] ),
             'faq_min_word_count'    => $faq_min_word_count,
             'faq_allowed_post_types'=> $faq_allowed_post_types,
+            'auto_create_service_pages' => ! empty( $input['auto_create_service_pages'] ),
+            'auto_service_post_type'    => $auto_service_post_type,
+            'auto_service_auto_publish' => ! empty( $input['auto_service_auto_publish'] ),
+            'auto_service_max_per_run'  => $auto_service_max_per_run,
         );
     }
 

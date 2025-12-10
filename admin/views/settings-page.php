@@ -172,6 +172,42 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <p class="description"><?php esc_html_e( 'Comma or newline separated list (e.g., page, post, product). FAQ tasks will only run for these types.', 'versa-ai-seo-engine' ); ?></p>
                     </td>
                 </tr>
+
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Auto-create Service Pages', 'versa-ai-seo-engine' ); ?></th>
+                    <td>
+                        <label>
+                            <input name="<?php echo esc_attr( Versa_AI_Settings_Page::OPTION_KEY ); ?>[auto_create_service_pages]" type="checkbox" value="1" <?php checked( ! empty( $profile['auto_create_service_pages'] ), true ); ?> />
+                            <?php esc_html_e( 'Create draft service pages if a service URL has no matching page.', 'versa-ai-seo-engine' ); ?>
+                        </label>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row"><label for="versa_ai_auto_service_post_type"><?php esc_html_e( 'Service Page Post Type', 'versa-ai-seo-engine' ); ?></label></th>
+                    <td>
+                        <input name="<?php echo esc_attr( Versa_AI_Settings_Page::OPTION_KEY ); ?>[auto_service_post_type]" id="versa_ai_auto_service_post_type" type="text" class="regular-text" value="<?php echo esc_attr( $profile['auto_service_post_type'] ); ?>" />
+                        <p class="description"><?php esc_html_e( 'Post type to use when creating missing service pages (e.g., page, product).', 'versa-ai-seo-engine' ); ?></p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Auto-publish Service Pages', 'versa-ai-seo-engine' ); ?></th>
+                    <td>
+                        <label>
+                            <input name="<?php echo esc_attr( Versa_AI_Settings_Page::OPTION_KEY ); ?>[auto_service_auto_publish]" type="checkbox" value="1" <?php checked( ! empty( $profile['auto_service_auto_publish'] ), true ); ?> />
+                            <?php esc_html_e( 'Publish automatically after creation (otherwise leave as draft).', 'versa-ai-seo-engine' ); ?>
+                        </label>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row"><label for="versa_ai_auto_service_max"><?php esc_html_e( 'Max New Service Pages Per Run', 'versa-ai-seo-engine' ); ?></label></th>
+                    <td>
+                        <input name="<?php echo esc_attr( Versa_AI_Settings_Page::OPTION_KEY ); ?>[auto_service_max_per_run]" id="versa_ai_auto_service_max" type="number" min="0" max="20" value="<?php echo esc_attr( $profile['auto_service_max_per_run'] ); ?>" />
+                        <p class="description"><?php esc_html_e( '0 = no limit. A small cap prevents flooding your site in one scan.', 'versa-ai-seo-engine' ); ?></p>
+                    </td>
+                </tr>
             </tbody>
         </table>
 
