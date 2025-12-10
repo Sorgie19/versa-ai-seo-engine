@@ -693,13 +693,15 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'faq_schema', $data['faq_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_faq_schema', wp_json_encode( $data['faq_schema_json'] ) );
 
-            return [ 'success' => true, 'details' => [ 'message' => 'FAQ schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'FAQ schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'FAQ schema ready to apply.', 'faq_schema_json' => $data['faq_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'FAQ schema ready to apply.', 'faq_schema_json' => $data['faq_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -750,12 +752,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'article_schema', $data['article_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_article_schema', wp_json_encode( $data['article_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'Article schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'Article schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'Article schema ready to apply.', 'article_schema_json' => $data['article_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'Article schema ready to apply.', 'article_schema_json' => $data['article_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -794,12 +798,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'breadcrumb_schema', $data['breadcrumb_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_breadcrumb_schema', wp_json_encode( $data['breadcrumb_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'Breadcrumb schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'Breadcrumb schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'Breadcrumb schema ready to apply.', 'breadcrumb_schema_json' => $data['breadcrumb_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'Breadcrumb schema ready to apply.', 'breadcrumb_schema_json' => $data['breadcrumb_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -839,12 +845,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'howto_schema', $data['howto_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_howto_schema', wp_json_encode( $data['howto_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'HowTo schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'HowTo schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'HowTo schema ready to apply.', 'howto_schema_json' => $data['howto_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'HowTo schema ready to apply.', 'howto_schema_json' => $data['howto_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -884,12 +892,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'video_schema', $data['video_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_video_schema', wp_json_encode( $data['video_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'Video schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'Video schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'Video schema ready to apply.', 'video_schema_json' => $data['video_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'Video schema ready to apply.', 'video_schema_json' => $data['video_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -947,12 +957,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'product_schema', $data['product_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_product_schema', wp_json_encode( $data['product_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'Product schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'Product schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'Product schema ready to apply.', 'product_schema_json' => $data['product_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'Product schema ready to apply.', 'product_schema_json' => $data['product_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -998,12 +1010,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'service_schema', $data['service_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_service_schema', wp_json_encode( $data['service_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'Service schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'Service schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'Service schema ready to apply.', 'service_schema_json' => $data['service_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'Service schema ready to apply.', 'service_schema_json' => $data['service_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -1055,12 +1069,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'event_schema', $data['event_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_event_schema', wp_json_encode( $data['event_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'Event schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'Event schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'Event schema ready to apply.', 'event_schema_json' => $data['event_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'Event schema ready to apply.', 'event_schema_json' => $data['event_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -1103,12 +1119,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'website_schema', $data['website_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_website_schema', wp_json_encode( $data['website_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'WebSite schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'WebSite schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'WebSite schema ready to apply.', 'website_schema_json' => $data['website_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'WebSite schema ready to apply.', 'website_schema_json' => $data['website_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -1151,12 +1169,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'org_schema', $data['org_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_org_schema', wp_json_encode( $data['org_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'Organization schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'Organization schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'Organization schema ready to apply.', 'org_schema_json' => $data['org_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'Organization schema ready to apply.', 'org_schema_json' => $data['org_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -1202,12 +1222,14 @@ class Versa_AI_Optimizer {
             return [ 'success' => false, 'details' => [ 'message' => 'Invalid JSON response.' ] ];
         }
 
+        $summary = $this->summarize_schema( 'localbusiness_schema', $data['localbusiness_schema_json'] );
+
         if ( $apply_now ) {
             update_post_meta( $post_id, 'versa_ai_localbusiness_schema', wp_json_encode( $data['localbusiness_schema_json'] ) );
-            return [ 'success' => true, 'details' => [ 'message' => 'LocalBusiness schema updated.' ] ];
+            return [ 'success' => true, 'details' => [ 'message' => 'LocalBusiness schema updated.', 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
         }
 
-        return [ 'success' => true, 'details' => [ 'message' => 'LocalBusiness schema ready to apply.', 'localbusiness_schema_json' => $data['localbusiness_schema_json'] ] ];
+        return [ 'success' => true, 'details' => [ 'message' => 'LocalBusiness schema ready to apply.', 'localbusiness_schema_json' => $data['localbusiness_schema_json'], 'summary' => $summary['summary'], 'warnings' => $summary['warnings'] ] ];
     }
 
     /**
@@ -1255,6 +1277,219 @@ class Versa_AI_Optimizer {
             return null;
         }
         return [ $key => $decoded[ $key ] ];
+    }
+
+    /**
+     * Build a short, human-readable summary and warnings for generated schema.
+     */
+    private function summarize_schema( string $task_type, array $schema ): array {
+        $summary  = '';
+        $warnings = [];
+
+        $safe_str = function ( $value, int $max = 120 ): string {
+            $text = is_array( $value ) ? '' : (string) $value;
+            $text = trim( wp_strip_all_tags( $text ) );
+            if ( strlen( $text ) > $max ) {
+                $text = substr( $text, 0, $max - 3 ) . '...';
+            }
+            return $text;
+        };
+
+        $list_names = function ( $items, int $limit = 3 ) use ( $safe_str ): string {
+            $names = [];
+            if ( is_array( $items ) ) {
+                foreach ( $items as $item ) {
+                    if ( is_array( $item ) && isset( $item['name'] ) ) {
+                        $names[] = $safe_str( $item['name'] );
+                    } elseif ( is_string( $item ) ) {
+                        $names[] = $safe_str( $item );
+                    }
+                    if ( count( $names ) >= $limit ) {
+                        break;
+                    }
+                }
+            }
+            return implode( ', ', array_filter( $names ) );
+        };
+
+        switch ( $task_type ) {
+            case 'faq_schema':
+                $count   = is_array( $schema['mainEntity'] ?? null ) ? count( $schema['mainEntity'] ) : 0;
+                $summary = 'FAQPage with ' . $count . ' questions.';
+                break;
+
+            case 'article_schema':
+                $headline = $safe_str( $schema['headline'] ?? ( $schema['name'] ?? '' ) );
+                $author   = $safe_str( $schema['author']['name'] ?? '' );
+                $date     = $safe_str( $schema['datePublished'] ?? '' );
+                $summary  = 'Article schema for "' . $headline . '" by ' . ( $author ?: 'unknown author' );
+                if ( $date ) {
+                    $summary .= ' (published ' . $date . ')';
+                }
+                $summary .= '.';
+                break;
+
+            case 'breadcrumb_schema':
+                $items   = is_array( $schema['itemListElement'] ?? null ) ? count( $schema['itemListElement'] ) : 0;
+                $summary = 'BreadcrumbList with ' . $items . ' items.';
+                break;
+
+            case 'howto_schema':
+                $steps   = is_array( $schema['step'] ?? null ) ? count( $schema['step'] ) : 0;
+                $name    = $safe_str( $schema['name'] ?? '' );
+                $summary = 'HowTo "' . $name . '" with ' . $steps . ' steps.';
+                break;
+
+            case 'video_schema':
+                $name      = $safe_str( $schema['name'] ?? '' );
+                $duration  = $safe_str( $schema['duration'] ?? '' );
+                $upload    = $safe_str( $schema['uploadDate'] ?? '' );
+                $video_url = $safe_str( $schema['contentUrl'] ?? ( $schema['url'] ?? '' ) );
+                $summary   = 'VideoObject "' . $name . '"';
+                if ( $duration ) {
+                    $summary .= ' (' . $duration . ')';
+                }
+                if ( $upload ) {
+                    $summary .= ' uploaded ' . $upload;
+                }
+                if ( $video_url ) {
+                    $summary .= '; source: ' . $video_url;
+                }
+                $summary .= '.';
+                break;
+
+            case 'product_schema':
+                $name     = $safe_str( $schema['name'] ?? '' );
+                $brand    = $safe_str( $schema['brand']['name'] ?? ( $schema['brand'] ?? '' ) );
+                $offer    = $schema['offers'] ?? [];
+                $price    = is_array( $offer ) ? ( $offer['price'] ?? '' ) : '';
+                $currency = is_array( $offer ) ? ( $offer['priceCurrency'] ?? '' ) : '';
+                $avail    = is_array( $offer ) ? ( $offer['availability'] ?? '' ) : '';
+                $summary  = 'Product "' . $name . '"';
+                if ( $brand ) {
+                    $summary .= ' by ' . $brand;
+                }
+                if ( $price ) {
+                    $summary .= ' priced at ' . $price . ( $currency ? ' ' . $currency : '' );
+                }
+                if ( $avail ) {
+                    $summary .= ' (' . $avail . ')';
+                }
+                $summary .= '.';
+                if ( '' === (string) $price || '0' === (string) $price ) {
+                    $warnings[] = 'Price missing or zero; update before publishing.';
+                }
+                if ( empty( $schema['image'] ) && empty( $offer['image'] ) ) {
+                    $warnings[] = 'No product image detected in schema.';
+                }
+                break;
+
+            case 'service_schema':
+                $name        = $safe_str( $schema['name'] ?? '' );
+                $provider    = $safe_str( $schema['provider']['name'] ?? '' );
+                $areas       = $list_names( $schema['areaServed'] ?? [] );
+                $offers      = $schema['offers'] ?? [];
+                $price       = is_array( $offers ) ? ( $offers['price'] ?? '' ) : '';
+                $currency    = is_array( $offers ) ? ( $offers['priceCurrency'] ?? '' ) : '';
+                $summary     = 'Service "' . $name . '" by ' . ( $provider ?: 'provider not set' );
+                if ( $areas ) {
+                    $summary .= '; areas served: ' . $areas;
+                }
+                if ( $price ) {
+                    $summary .= '; price ' . $price . ( $currency ? ' ' . $currency : '' );
+                }
+                $summary .= '.';
+                if ( '' === (string) $price || '0' === (string) $price ) {
+                    $warnings[] = 'Service offer has no price; consider adding or removing price.';
+                }
+                break;
+
+            case 'event_schema':
+                $name      = $safe_str( $schema['name'] ?? '' );
+                $start     = $safe_str( $schema['startDate'] ?? '' );
+                $end       = $safe_str( $schema['endDate'] ?? '' );
+                $location  = $safe_str( $schema['location']['name'] ?? ( $schema['location']['address']['streetAddress'] ?? '' ) );
+                $is_online = isset( $schema['eventAttendanceMode'] ) && false !== stripos( (string) $schema['eventAttendanceMode'], 'Online' );
+                $summary   = 'Event "' . $name . '" starting ' . ( $start ?: 'TBD' );
+                if ( $end ) {
+                    $summary .= ' ending ' . $end;
+                }
+                if ( $location ) {
+                    $summary .= $is_online ? '; online host ' . $location : '; location ' . $location;
+                } elseif ( $is_online ) {
+                    $summary .= '; online event';
+                }
+                $summary .= '.';
+                if ( ! $start ) {
+                    $warnings[] = 'Event startDate missing; set a start date.';
+                }
+                if ( ! $location && ! $is_online ) {
+                    $warnings[] = 'Event location missing; add venue or mark as online.';
+                }
+                break;
+
+            case 'website_schema':
+                $name    = $safe_str( $schema['name'] ?? '' );
+                $url     = $safe_str( $schema['url'] ?? '' );
+                $summary = 'WebSite schema for ' . ( $name ?: 'site' );
+                if ( $url ) {
+                    $summary .= ' (' . $url . ')';
+                }
+                $has_search = ! empty( $schema['potentialAction'] );
+                if ( $has_search ) {
+                    $summary .= '; includes SearchAction.';
+                } else {
+                    $warnings[] = 'SearchAction missing; ensure search target is included.';
+                }
+                $summary .= '.';
+                break;
+
+            case 'org_schema':
+                $name    = $safe_str( $schema['name'] ?? '' );
+                $url     = $safe_str( $schema['url'] ?? '' );
+                $logo    = $safe_str( $schema['logo'] ?? '' );
+                $summary = 'Organization schema for ' . $name;
+                if ( $url ) {
+                    $summary .= ' (' . $url . ')';
+                }
+                if ( $logo ) {
+                    $summary .= '; logo included.';
+                } else {
+                    $warnings[] = 'Organization logo missing; add a logo URL.';
+                }
+                $summary .= '.';
+                break;
+
+            case 'localbusiness_schema':
+                $name        = $safe_str( $schema['name'] ?? '' );
+                $address     = $safe_str( $schema['address']['streetAddress'] ?? '' );
+                $phone       = $safe_str( $schema['telephone'] ?? '' );
+                $has_geo     = ! empty( $schema['geo']['latitude'] ) && ! empty( $schema['geo']['longitude'] );
+                $summary     = 'LocalBusiness schema for ' . $name;
+                if ( $address ) {
+                    $summary .= '; address: ' . $address;
+                }
+                if ( $phone ) {
+                    $summary .= '; phone: ' . $phone;
+                }
+                $summary .= '.';
+                if ( ! $address ) {
+                    $warnings[] = 'Address missing; add street/city/state for LocalBusiness.';
+                }
+                if ( ! $has_geo ) {
+                    $warnings[] = 'Geo coordinates missing; add latitude/longitude if available.';
+                }
+                break;
+
+            default:
+                $summary = 'Schema ready to apply.';
+                break;
+        }
+
+        return [
+            'summary'  => $summary ?: 'Schema ready to apply.',
+            'warnings' => $warnings,
+        ];
     }
 
     /**

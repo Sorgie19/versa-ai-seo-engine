@@ -180,7 +180,22 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <?php if ( isset( $payload['status'] ) && (int) $payload['status'] >= 400 ) : ?><div style="color:#b32d2e;"><strong><?php esc_html_e( 'Warning:', 'versa-ai-seo-engine' ); ?></strong> <?php esc_html_e( 'Page returns an error response.', 'versa-ai-seo-engine' ); ?></div><?php endif; ?>
                                 <?php if ( isset( $payload['noindex'] ) && $payload['noindex'] ) : ?><div style="color:#b32d2e;"><strong><?php esc_html_e( 'Warning:', 'versa-ai-seo-engine' ); ?></strong> <?php esc_html_e( 'Page is blocked by noindex.', 'versa-ai-seo-engine' ); ?></div><?php endif; ?>
                             <?php else : ?>
-                                <code style="white-space:pre-wrap;"><?php echo esc_html( $task['result'] ); ?></code>
+                                <?php if ( ! empty( $result['summary'] ) ) : ?>
+                                    <div><strong><?php esc_html_e( 'Summary:', 'versa-ai-seo-engine' ); ?></strong> <?php echo esc_html( $result['summary'] ); ?></div>
+                                <?php endif; ?>
+                                <?php if ( ! empty( $result['warnings'] ) && is_array( $result['warnings'] ) ) : ?>
+                                    <div><strong><?php esc_html_e( 'Warnings:', 'versa-ai-seo-engine' ); ?></strong>
+                                        <ul style="margin:4px 0 0 18px; list-style:disc;">
+                                            <?php foreach ( $result['warnings'] as $warn ) : ?>
+                                                <li><?php echo esc_html( $warn ); ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                <?php endif; ?>
+                                <details style="margin-top:6px;">
+                                    <summary><?php esc_html_e( 'Raw result', 'versa-ai-seo-engine' ); ?></summary>
+                                    <code style="white-space:pre-wrap; display:block; margin-top:4px;"><?php echo esc_html( $task['result'] ); ?></code>
+                                </details>
                             <?php endif; ?>
                         </td>
                         <td>
