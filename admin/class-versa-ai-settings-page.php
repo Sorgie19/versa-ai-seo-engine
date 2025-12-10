@@ -77,6 +77,8 @@ class Versa_AI_Settings_Page {
             'auto_service_post_type'    => 'page',
             'auto_service_auto_publish' => false,
             'auto_service_max_per_run'  => 3,
+            'writer_include_images'     => false,
+            'writer_image_count'        => 2,
         );
 
         $stored = get_option( self::OPTION_KEY, array() );
@@ -131,6 +133,9 @@ class Versa_AI_Settings_Page {
         $auto_service_max_per_run = isset( $input['auto_service_max_per_run'] ) ? (int) $input['auto_service_max_per_run'] : 3;
         $auto_service_max_per_run = max( 0, min( 20, $auto_service_max_per_run ) );
 
+        $writer_image_count = isset( $input['writer_image_count'] ) ? (int) $input['writer_image_count'] : 2;
+        $writer_image_count = max( 0, min( 6, $writer_image_count ) );
+
         $new_api_key = isset( $input['openai_api_key'] ) ? trim( $input['openai_api_key'] ) : '';
         if ( '' === $new_api_key && isset( $stored_option['openai_api_key'] ) ) {
             $new_api_key = $stored_option['openai_api_key']; // keep existing if left blank.
@@ -159,6 +164,8 @@ class Versa_AI_Settings_Page {
             'auto_service_post_type'    => $auto_service_post_type,
             'auto_service_auto_publish' => ! empty( $input['auto_service_auto_publish'] ),
             'auto_service_max_per_run'  => $auto_service_max_per_run,
+            'writer_include_images'     => ! empty( $input['writer_include_images'] ),
+            'writer_image_count'        => $writer_image_count,
         );
     }
 

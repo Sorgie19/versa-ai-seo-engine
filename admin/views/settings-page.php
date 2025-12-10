@@ -208,6 +208,24 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <p class="description"><?php esc_html_e( '0 = no limit. A small cap prevents flooding your site in one scan.', 'versa-ai-seo-engine' ); ?></p>
                     </td>
                 </tr>
+
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Include Images in Writer Posts', 'versa-ai-seo-engine' ); ?></th>
+                    <td>
+                        <label>
+                            <input name="<?php echo esc_attr( Versa_AI_Settings_Page::OPTION_KEY ); ?>[writer_include_images]" type="checkbox" value="1" <?php checked( ! empty( $profile['writer_include_images'] ), true ); ?> />
+                            <?php esc_html_e( 'Ask the writer to insert a few relevant images with descriptive alt text.', 'versa-ai-seo-engine' ); ?>
+                        </label>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row"><label for="versa_ai_writer_image_count"><?php esc_html_e( 'Writer Image Count', 'versa-ai-seo-engine' ); ?></label></th>
+                    <td>
+                        <input name="<?php echo esc_attr( Versa_AI_Settings_Page::OPTION_KEY ); ?>[writer_image_count]" id="versa_ai_writer_image_count" type="number" min="0" max="6" value="<?php echo esc_attr( $profile['writer_image_count'] ); ?>" />
+                        <p class="description"><?php esc_html_e( 'How many images to request (0 disables). Images will use external URLs; replace with your own media after publishing.', 'versa-ai-seo-engine' ); ?></p>
+                    </td>
+                </tr>
             </tbody>
         </table>
 

@@ -143,6 +143,15 @@ class Versa_AI_Writer {
         $lines[] = 'Use <h2> and <h3> headings, paragraphs, unordered lists as needed.';
         $lines[] = 'Include internal links to relevant service or location pages when naturally fitting (do not invent URLs).';
         $lines[] = 'Add an FAQ section near the end with 3-5 Q&A.';
+
+        $include_images = ! empty( $profile['writer_include_images'] );
+        $image_count    = isset( $profile['writer_image_count'] ) ? (int) $profile['writer_image_count'] : 0;
+        if ( $include_images && $image_count > 0 ) {
+            $lines[] = 'Insert ' . $image_count . ' relevant illustrative images using <figure><img ...><figcaption> where helpful.';
+            $lines[] = 'Each <img> must include meaningful alt text describing the image; do not use base64.';
+            $lines[] = 'Use royalty-free external URLs (e.g., Unsplash) and keep them lean; no data URIs.';
+            $lines[] = 'Keep images responsive (no fixed width/height) and avoid decorative filler images.';
+        }
         $lines[] = 'Do not include prices, legal claims, or fake certifications.';
         $lines[] = 'Return JSON ONLY with keys: content_html, seo_title, seo_description, faq_schema_json (object).';
 
