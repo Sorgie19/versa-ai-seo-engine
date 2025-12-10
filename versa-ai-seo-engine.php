@@ -99,6 +99,11 @@ function versa_ai_seo_engine_bootstrap(): void {
 }
 add_action( 'plugins_loaded', 'versa_ai_seo_engine_bootstrap' );
 
+// Increase OpenAI client timeout to 5 minutes to reduce API timeouts on long tasks.
+add_filter( 'versa_ai_openai_timeout', static function () {
+    return 300; // seconds
+} );
+
 // Activation / deactivation hooks.
 register_activation_hook( __FILE__, [ 'Versa_AI_Installer', 'activate' ] );
 register_deactivation_hook( __FILE__, [ 'Versa_AI_Installer', 'deactivate' ] );
